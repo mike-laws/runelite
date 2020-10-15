@@ -43,9 +43,62 @@ public class PlayerIndicatorsService
 		this.config = config;
 		this.client = client;
 	}
+	private int interpolate(int levelLow, int levelHigh, int colorLow, int colorHigh, int level)
+	{
+		double percentage = (double)(level - levelLow) / (levelHigh - levelLow);
+		return (int)(colorLow + (percentage * (colorHigh - colorLow)));
+	}
+	private int[] colorTable = {
+			-15, 0x00, 0xff, 0x00,
+			0, 0xff, 0xA5, 0x00,
+			15, 0xff, 0x00, 0x00
+	};
+
+	private Color getColor(int levelDifference)
+	{
+
+		if(levelDifference < 0)
+		{
+			int low = colorTable[0];
+			int high = colorTable[4];
+			return new Color(interpolate(low, high, colorTable[1], colorTable[1 + 4],levelDifference),
+					interpolate(low, high, colorTable[2], colorTable[2 + 4],levelDifference),
+					interpolate(low, high, colorTable[3], colorTable[3 + 4],levelDifference));
+		}
+
+		int low = colorTable[4];
+		int high = colorTable[8];
+		return new Color(interpolate(low, high, colorTable[1 + 4], colorTable[1 + 8],levelDifference),
+				interpolate(low, high, colorTable[2 + 4], colorTable[2 + 8],levelDifference),
+				interpolate(low, high, colorTable[3 + 4], colorTable[3 + 8],levelDifference));
+	}
+
 
 	public void forEachPlayer(final BiConsumer<Player, Color> consumer)
 	{
+		Color color = null;
+
+
+		int levelLow = client.getLocalPlayer().getCombatLevel() - 15;
+		int levelHigh = client.getLocalPlayer().getCombatLevel() + 15;
+
+		final Player localPlayer = client.getLocalPlayer();
+
+		for (Player player : client.getPlayers()) {
+			if (player == null || player.getName() == null) {
+				continue;
+			}
+			if(player == localPlayer) continue;
+			if(player.getCombatLevel() < levelLow || player.getCombatLevel() > levelHigh) continue;
+
+			int levelDifference = player.getCombatLevel() - client.getLocalPlayer().getCombatLevel();
+			color = getColor(levelDifference);
+			consumer.accept(player, color);
+		}
+
+
+		return;
+		/*
 		if (!config.highlightOwnPlayer() && !config.drawFriendsChatMemberNames()
 			&& !config.highlightFriends() && !config.highlightOthers())
 		{
@@ -87,5 +140,6 @@ public class PlayerIndicatorsService
 				consumer.accept(player, config.getOthersColor());
 			}
 		}
+		 */
 	}
 }
