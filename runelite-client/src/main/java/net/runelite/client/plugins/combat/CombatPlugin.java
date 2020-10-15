@@ -57,6 +57,9 @@ public class CombatPlugin extends Plugin
 	@Inject
 	private ItemManager itemManager;
 
+	@Inject
+	private CombatOverlay overlay;
+
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<NPC> targets = new HashSet<>();
 
@@ -68,9 +71,12 @@ public class CombatPlugin extends Plugin
 
 	public boolean isCombatRunning = false;
 
-	public boolean isPrayerRunning = false;
+	public boolean isLootingRunning = false;
+
 
 	public boolean isLooting = false;
+
+	public String status = "";
 
 	@Provides
 	CombatConfig provideConfig(ConfigManager configManager)
@@ -83,6 +89,14 @@ public class CombatPlugin extends Plugin
 		public void hotkeyPressed()
 		{
 			toggleCombat();
+		}
+	};
+
+	private final HotkeyListener lootKeyListener = new HotkeyListener(() -> new Keybind(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK)) {
+		@Override
+		public void hotkeyPressed()
+		{
+			isLootingRunning = !isLootingRunning;
 		}
 	};
 
@@ -143,6 +157,8 @@ public class CombatPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception {
 		keyManager.registerKeyListener(combatKeyListener);
+		keyManager.registerKeyListener(lootKeyListener);
+		overlayManager.add(overlay);
 		targetNames = readTargetNames();
 		lootNames = readLootNames();
 		rebuildAllNpcs();
@@ -151,6 +167,8 @@ public class CombatPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception {
 		keyManager.unregisterKeyListener(combatKeyListener);
+		keyManager.unregisterKeyListener(lootKeyListener);
+		overlayManager.remove(overlay);
 	}
 
 	@Subscribe
@@ -187,6 +205,7 @@ public class CombatPlugin extends Plugin
 		}
 
 		if(shouldLoot){
+			status = "Looting " + lootEntry.getTarget();
 			try {
 				Thread.sleep(300);
 				click();
@@ -197,11 +216,11 @@ public class CombatPlugin extends Plugin
 			}
 		}
 
-
 		if(!shouldAttack) return;
 
 		if(shouldAttack){
 			try {
+				status = "Attacking " + getNextTarget().getName();
 				Thread.sleep(300);
 				switchEntries = true;
 				click();

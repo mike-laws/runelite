@@ -28,6 +28,7 @@ import com.google.inject.Provides;
 import java.awt.Color;
 import javax.inject.Inject;
 import lombok.Value;
+import lombok.var;
 import net.runelite.api.FriendsChatRank;
 import static net.runelite.api.FriendsChatRank.UNRANKED;
 import net.runelite.api.Client;
@@ -169,11 +170,55 @@ public class PlayerIndicatorsPlugin extends Plugin
 		}
 	}
 
+	private int[] colorTable = {
+		  -15, 0x00, 0xff, 0x00,
+			0, 0xff, 0xA5, 0x00,
+		   15, 0xff, 0xff, 0x00
+	};
+
+	private int interpolate(int levelLow, int levelHigh, int colorLow, int colorHigh, int level)
+	{
+		double percentage = (double)(level - levelLow) / (levelHigh - levelLow);
+		return (int)(colorLow + (percentage * (colorHigh - colorLow)));
+	}
+
+	private Color getColor(int levelDifference)
+	{
+
+		if(levelDifference < 0)
+		{
+			int low = colorTable[0];
+			int high = colorTable[4];
+			return new Color(interpolate(low, high, colorTable[1], colorTable[1 + 4],levelDifference),
+							 interpolate(low, high, colorTable[2], colorTable[2 + 4],levelDifference),
+							 interpolate(low, high, colorTable[3], colorTable[3 + 4],levelDifference));
+		}
+
+		int low = colorTable[4];
+		int high = colorTable[8];
+		return new Color(interpolate(low, high, colorTable[1 + 4], colorTable[1 + 8],levelDifference),
+				interpolate(low, high, colorTable[2 + 4], colorTable[2 + 8],levelDifference),
+				interpolate(low, high, colorTable[3 + 4], colorTable[3 + 8],levelDifference));
+	}
+
+
 	private Decorations getDecorations(Player player)
 	{
 		int image = -1;
 		Color color = null;
 
+
+		int levelLow = client.getLocalPlayer().getCombatLevel() - 15;
+		int levelHigh = client.getLocalPlayer().getCombatLevel() + 15;
+
+		if(player.getCombatLevel() < levelLow || player.getCombatLevel() > levelHigh) return null;
+
+		int levelDifference = player.getCombatLevel() - client.getLocalPlayer().getCombatLevel();
+		color = getColor(levelDifference);
+
+		return new Decorations(image, color);
+
+		/*
 		if (config.highlightFriends() && player.isFriend())
 		{
 			color = config.getFriendColor();
@@ -203,7 +248,7 @@ public class PlayerIndicatorsPlugin extends Plugin
 			return null;
 		}
 
-		return new Decorations(image, color);
+		return new Decorations(image, color);*/
 	}
 
 	private String decorateTarget(String oldTarget, Decorations decorations)
