@@ -90,8 +90,6 @@ public class AutoGatherPlugin extends Plugin
 
             return lastClicked.getMenuTarget().contains(npc.getName());
         }
-
-
     }
 
     private Action[] actions = {
@@ -103,6 +101,7 @@ public class AutoGatherPlugin extends Plugin
             new Action("Lure","Luring", Mode.FISHING),
             new Action("Cage","Caging", Mode.FISHING),
             new Action("Fish","Fishing", Mode.FISHING),
+            new Action("Use-rod","Barb Fishing", Mode.FISHING),
         };
 
     @Getter
