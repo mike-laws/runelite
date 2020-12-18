@@ -1,9 +1,7 @@
-package net.runelite.client.plugins.debug;
+package net.runelite.client.plugins.lawsofagility;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameObject;
-import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.eventbus.Subscribe;
@@ -15,12 +13,17 @@ import net.runelite.client.plugins.PluginDescriptor;
 import javax.inject.Inject;
 
 @PluginDescriptor(
-        name = "Debug Info",
-        description = "DebuggingInfo",
-        tags = {"Debug"}
+        name = "Laws of Agility",
+        description = "Laws of Agility",
+        tags = {"Laws", "Agility"}
 )
+
+//TODO: Agility tasks
+//TODO: Find Token
+//TODO: Loot Token
+
 @Slf4j
-public class DebugPlugin extends Plugin
+public class LawsOfAgilityPlugin extends Plugin
 {
     private Finder finder;
     private Interact interact;
@@ -35,21 +38,7 @@ public class DebugPlugin extends Plugin
     }
 
     @Override
-    protected void shutDown() throws Exception
-    {
-    }
-
-
-    private int count;
-    @Subscribe
-    public void onGameTick(GameTick gameTick)
-    {
-        count++;
-        if(count != 10) return;
-        count = 0;
-        GameObject gameObject = finder.GetObject(14843);
-        if(gameObject != null)
-            new Thread(() -> {interact.interact(gameObject);}).start();
+    protected void shutDown() throws Exception {
 
     }
 
@@ -57,7 +46,6 @@ public class DebugPlugin extends Plugin
     public void onMenuOptionClicked(MenuOptionClicked click)
     {
         if(interact != null) interact.onMenuOptionClicked(click);
-        log.info(click.toString());
     }
 
     @Subscribe
